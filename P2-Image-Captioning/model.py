@@ -54,4 +54,21 @@ class DecoderRNN(nn.Module):
 
     def sample(self, inputs, states=None, max_len=20):
         " accepts pre-processed image tensor (inputs) and returns predicted sentence (list of tensor ids of length max_len) "
-        pass
+        
+        captions = []
+        
+        for i in range(max_len):
+            outputs, states = self.lstm(inputs, states)
+            
+            outputs = self.linear(outputs.squeeze(1))
+            
+            outputs = outputs.squeeze(0)
+            output = outputs.max(0)[1]            
+            
+            # Convert tensor to variable and append to captions list
+            captions.append(output.item())
+            
+            # Input for the next time 't+1' is the output from current time 't'
+            inputs = self.word_embeddings(output).unsqueeze(0).unsqueeze(0)
+        
+        return captions
